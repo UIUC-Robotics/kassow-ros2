@@ -19,17 +19,17 @@ using namespace std::chrono_literals;
 
 #include "rclcpp/rclcpp.hpp"
 
-#include <kr_msg_ros2/msg/system_state.hpp>
-#include <kr_msg_ros2/msg/number.hpp>
-#include <kr_msg_ros2/msg/robot_pose.hpp>
+#include <kr_msgs/msg/system_state.hpp>
+#include <kr_msgs/msg/number.hpp>
+#include <kr_msgs/msg/robot_pose.hpp>
 
-#include <kr_msg_ros2/srv/move_joint.hpp>
+#include <kr_msgs/srv/move_joint.hpp>
 
-#include <kr_msg_ros2/srv/select_jogging_frame.hpp>
+#include <kr_msgs/srv/select_jogging_frame.hpp>
 
-#include <kr_msg_ros2/msg/jog_linear.hpp>
-#include <kr_msg_ros2/msg/self_motion.hpp>
-#include <kr_msg_ros2/msg/follow_joint.hpp>
+#include <kr_msgs/msg/jog_linear.hpp>
+#include <kr_msgs/msg/self_motion.hpp>
+#include <kr_msgs/msg/follow_joint.hpp>
 
 
 using std::placeholders::_1;
@@ -40,14 +40,14 @@ public:
     
     KrRobotROS2Subscriber() : Node("kr_robot_ros2_subscriber") {
         // Publishers init
-        follow_joint_publisher_ = this->create_publisher<kr_msg_ros2::msg::FollowJoint>("/kr/motion/follow_joint", 10);
-        jog_linear_publisher_ = this->create_publisher<kr_msg_ros2::msg::JogLinear>("/kr/motion/jog_linear", 10);
-        self_motion_publisher_ = this->create_publisher<kr_msg_ros2::msg::SelfMotion>("/kr/motion/self_motion", 10);
+        follow_joint_publisher_ = this->create_publisher<kr_msgs::msg::FollowJoint>("/kr/motion/follow_joint", 10);
+        jog_linear_publisher_ = this->create_publisher<kr_msgs::msg::JogLinear>("/kr/motion/jog_linear", 10);
+        self_motion_publisher_ = this->create_publisher<kr_msgs::msg::SelfMotion>("/kr/motion/self_motion", 10);
 
         // UNCOMMENT ONE OF OPTIONS TO START THREAD
 
         // Robot state subscriber example
-        // robot_state_subscription_ = this->create_subscription<kr_msg_ros2::msg::SystemState>("/kr/system/state", 10, std::bind(&KrRobotROS2Subscriber::robot_state_callback, this, _1));
+         robot_state_subscription_ = this->create_subscription<kr_msgs::msg::SystemState>("/kr/system/state", 10, std::bind(&KrRobotROS2Subscriber::robot_state_callback, this, _1));
 
         // Move joint service example
         // move_joint();
@@ -67,7 +67,7 @@ public:
 private:
 
     // Writing received data from system state message to standard output 
-    void robot_state_callback(const kr_msg_ros2::msg::SystemState::SharedPtr msg) const
+    void robot_state_callback(const kr_msgs::msg::SystemState::SharedPtr msg) const
     {
         std::cout.precision(2);
 
@@ -172,9 +172,9 @@ private:
     void move_joint()
     {
         std::shared_ptr<rclcpp::Node> node = rclcpp::Node::make_shared("move_joint_node");
-        rclcpp::Client<kr_msg_ros2::srv::MoveJoint>::SharedPtr client = node->create_client<kr_msg_ros2::srv::MoveJoint>("/kr/motion/move_joint");
+        rclcpp::Client<kr_msgs::srv::MoveJoint>::SharedPtr client = node->create_client<kr_msgs::srv::MoveJoint>("/kr/motion/move_joint");
 
-        auto request = std::make_shared<kr_msg_ros2::srv::MoveJoint::Request>();
+        auto request = std::make_shared<kr_msgs::srv::MoveJoint::Request>();
 
         const std::array<double, 7> config_1 = {0., 35., 9., 116., 0., 0., 0.};
 
@@ -214,7 +214,7 @@ private:
     // Each time callback is called, one configuration is selected and request to follow this configuration is published
     // configurations are changing each call.
     void follow_joint_callback(){
-        auto message = kr_msg_ros2::msg::FollowJoint();
+        auto message = kr_msgs::msg::FollowJoint();
         const std::array<double, 7> config_1 = {0., 35., 9., 116., 0., 0., 0.};
         const std::array<double, 7> config_2 = {54., 35., 9., 116., 0., 0., 0.};
 
@@ -233,7 +233,7 @@ private:
 
     // Sending message to jog X axis
     void jog_linear_callback(){
-        auto message = kr_msg_ros2::msg::JogLinear();
+        auto message = kr_msgs::msg::JogLinear();
         const std::array<double, 3> vel = { 100., 0., 0. };
         const std::array<double, 3> rot = { 0., 0., 0. };
 
@@ -246,7 +246,7 @@ private:
 
     // Sending message to do self-motion in positive direction with relative speed 0.5
     void self_motion_callback(){
-        auto message = kr_msg_ros2::msg::SelfMotion();
+        auto message = kr_msgs::msg::SelfMotion();
 
         message.set__speed(0.5);
 
@@ -258,9 +258,9 @@ private:
     void select_jogging_frame(int value)
     {
         std::shared_ptr<rclcpp::Node> node = rclcpp::Node::make_shared("select_jogging_node");
-        rclcpp::Client<kr_msg_ros2::srv::SelectJoggingFrame>::SharedPtr client = node->create_client<kr_msg_ros2::srv::SelectJoggingFrame>("/kr/motion/select_jogging_frame");
+        rclcpp::Client<kr_msgs::srv::SelectJoggingFrame>::SharedPtr client = node->create_client<kr_msgs::srv::SelectJoggingFrame>("/kr/motion/select_jogging_frame");
 
-        auto request = std::make_shared<kr_msg_ros2::srv::SelectJoggingFrame::Request>();
+        auto request = std::make_shared<kr_msgs::srv::SelectJoggingFrame::Request>();
         request->set__ref(value);
 
         while (!client->wait_for_service(1s)) {
@@ -287,11 +287,11 @@ private:
 
 
 
-    rclcpp::Subscription<kr_msg_ros2::msg::SystemState>::SharedPtr robot_state_subscription_;
+    rclcpp::Subscription<kr_msgs::msg::SystemState>::SharedPtr robot_state_subscription_;
   
-    rclcpp::Publisher<kr_msg_ros2::msg::FollowJoint>::SharedPtr follow_joint_publisher_;
-    rclcpp::Publisher<kr_msg_ros2::msg::JogLinear>::SharedPtr jog_linear_publisher_;
-    rclcpp::Publisher<kr_msg_ros2::msg::SelfMotion>::SharedPtr self_motion_publisher_;
+    rclcpp::Publisher<kr_msgs::msg::FollowJoint>::SharedPtr follow_joint_publisher_;
+    rclcpp::Publisher<kr_msgs::msg::JogLinear>::SharedPtr jog_linear_publisher_;
+    rclcpp::Publisher<kr_msgs::msg::SelfMotion>::SharedPtr self_motion_publisher_;
     
     rclcpp::TimerBase::SharedPtr follow_joint_timer_;
     rclcpp::TimerBase::SharedPtr jog_linear_timer_;
