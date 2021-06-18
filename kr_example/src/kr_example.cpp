@@ -30,9 +30,13 @@ using namespace std::chrono_literals;
 #include <kr_msgs/msg/jog_linear.hpp>
 #include <kr_msgs/msg/self_motion.hpp>
 #include <kr_msgs/msg/follow_joint.hpp>
+#include <mutex>
 
 
 using std::placeholders::_1;
+
+std::mutex my_mutex;
+
 
 class KrRobotROS2Subscriber : public rclcpp::Node {
     
@@ -47,7 +51,7 @@ public:
         // UNCOMMENT ONE OF OPTIONS TO START THREAD
 
         // Robot state subscriber example
-         robot_state_subscription_ = this->create_subscription<kr_msgs::msg::SystemState>("/kr/system/state", 10, std::bind(&KrRobotROS2Subscriber::robot_state_callback, this, _1));
+         //robot_state_subscription_ = this->create_subscription<kr_msgs::msg::SystemState>("/kr/system/state", 10, std::bind(&KrRobotROS2Subscriber::robot_state_callback, this, _1));
 
         // Move joint service example
         // move_joint();
@@ -57,7 +61,7 @@ public:
 
         // Select jogging frame service and jog linear mnessage example
         // select_jogging_frame(1);
-        // jog_linear_timer_ = this->create_wall_timer(20ms, std::bind(&KrRobotROS2Subscriber::jog_linear_callback, this));
+         jog_linear_timer_ = this->create_wall_timer(20ms, std::bind(&KrRobotROS2Subscriber::jog_linear_callback, this));
 
         // Self motion message example
         // self_motion_timer_ = this->create_wall_timer(20ms, std::bind(&KrRobotROS2Subscriber::self_motion_callback, this));
@@ -233,8 +237,15 @@ private:
 
     // Sending message to jog X axis
     void jog_linear_callback(){
+        std::lock_guard<std::mutex> guard(my_mutex);
+        select_jogging_frame(2);
+        static int i = 0;
+        auto dir = (i / 20) % 6;
+        auto x_vel = dir == 0 ? 100. : (dir == 3 ? -100. : 0.);
+        auto y_vel = dir == 1 ? 100. : (dir == 4 ? -100. : 0.);
+        auto z_vel = dir == 2 ? 100. : (dir == 5 ? -100. : 0.);
         auto message = kr_msgs::msg::JogLinear();
-        const std::array<double, 3> vel = { 100., 0., 0. };
+        const std::array<double, 3> vel = { x_vel, y_vel, 0. };
         const std::array<double, 3> rot = { 0., 0., 0. };
 
         message.set__vel(vel);
@@ -242,10 +253,13 @@ private:
 
         std ::cout << "PUBLISHING JOG LINEAR \n";
         jog_linear_publisher_->publish(message);
+        ++i;
     }
 
     // Sending message to do self-motion in positive direction with relative speed 0.5
     void self_motion_callback(){
+        std::lock_guard<std::mutex> guard(my_mutex);
+
         auto message = kr_msgs::msg::SelfMotion();
 
         message.set__speed(0.5);
@@ -273,7 +287,6 @@ private:
 
         std ::cout << "SENDING REQUEST TO SELECT JOGGING FRAME \n";
         auto result = client->async_send_request(request);
-
         if (rclcpp::spin_until_future_complete(node, result) == rclcpp::executor::FutureReturnCode::SUCCESS) {
             if (result.get()->success) {
                 RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "Successfull selection.");
