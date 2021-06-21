@@ -45,51 +45,39 @@ value: 1"
 ```
 
 ### kr_example
-To try the following examples, you will need to edit file kr_example.cpp located in kr_example/src folder. In the upper part of the file in constructor of class KrRobotROS2Subscriber, there are several testing scenarios prepared. 
+
 #### state_subscriber
-First of all state_subscriber which can be tested by uncommenting (removing //) line 50, saving the file, compiling the whole project and running the example. 
+First of all state_subscriber reads robot state and writes all received values into console. After kr_example compilation as described before, you can run state_subscriber test by:
 
 ```bash
-cd ~/dew_ws
-colcon build
-ros2 run kr_example kr_example
+ros2 run kr_example robot_state
 ```
 
 #### move_joint
-By uncommening line 53, it is possible to let the robot move to the joint configuration which is defined in function move_joint().
+By this test it is possible to let the robot move to the joint configuration which is defined in function move_joint() in file move_joint.cpp. The configuration is [0., 35., 9., 116., 0., 0., 0.].
 
 ```bash
-cd ~/dew_ws
-colcon build
-ros2 run kr_example kr_example
+ros2 run kr_example move_joint
 ```
 
 #### follow_joint
-By uncomening line 56 and running the example your robot will move between two joint configurations in 5s time intervals. 
-
+By this test it is possible to let the robot follow the joint configuration [0, 0, 0, 0, 0, 0, 0], which is defined in file follow_joint.cpp.
 ```bash
-cd ~/dew_ws
-colcon build
-ros2 run kr_example kr_example
+ros2 run kr_example follow_joint
 ```
 
 ### select_jogging_frame and jog_linear
-To test these two topics, just uncomment lines 59 and 60 and your robot wil start jogging in sellecteg jogging frame.
-
+To test these two topics, you can run command bellow and your robot wil start jogging with values defined in jog_linear.cpp file in sellected jogging frame.
 
 ```bash
-cd ~/dew_ws
-colcon build
-ros2 run kr_example kr_example
+ros2 run kr_example jog_linear
 ```
 
 ### self_motion
-By uncommenting line 63 and running the testing program, your robot will start executing selfmotion. 
+By running the following command, your robot will start executing self-motion. 
 
 ```bash
-cd ~/dew_ws
-colcon build
-ros2 run kr_example kr_example
+ros2 run kr_example self_motion
 ```
 
 For more details see our wiki page with detailed describtion of all available messages and services. 
