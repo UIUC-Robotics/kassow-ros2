@@ -38,33 +38,13 @@ using std::placeholders::_1;
 std::mutex my_mutex;
 
 
-class KrRobotROS2Subscriber : public rclcpp::Node {
+class KrRobotROS2StateSubscriber : public rclcpp::Node {
     
 public:
     
-    KrRobotROS2Subscriber() : Node("kr_robot_ros2_subscriber") {
-        // Publishers init
-        follow_joint_publisher_ = this->create_publisher<kr_msgs::msg::FollowJoint>("/kr/motion/follow_joint", 10);
-        jog_linear_publisher_ = this->create_publisher<kr_msgs::msg::JogLinear>("/kr/motion/jog_linear", 10);
-        self_motion_publisher_ = this->create_publisher<kr_msgs::msg::SelfMotion>("/kr/motion/self_motion", 10);
-
-        // UNCOMMENT ONE OF OPTIONS TO START THREAD
-
+    KrRobotROS2StateSubscriber() : Node("kr_robot_ros2_subscriber") {
         // Robot state subscriber example
-         //robot_state_subscription_ = this->create_subscription<kr_msgs::msg::SystemState>("/kr/system/state", 10, std::bind(&KrRobotROS2Subscriber::robot_state_callback, this, _1));
-
-        // Move joint service example
-        // move_joint();
-
-        // Follow joint message example
-        // follow_joint_timer_ = this->create_wall_timer(5000ms, std::bind(&KrRobotROS2Subscriber::follow_joint_callback, this));
-
-        // Select jogging frame service and jog linear mnessage example
-        // select_jogging_frame(1);
-         jog_linear_timer_ = this->create_wall_timer(20ms, std::bind(&KrRobotROS2Subscriber::jog_linear_callback, this));
-
-        // Self motion message example
-        // self_motion_timer_ = this->create_wall_timer(20ms, std::bind(&KrRobotROS2Subscriber::self_motion_callback, this));
+        robot_state_subscription_ = this->create_subscription<kr_msgs::msg::SystemState>("/kr/system/state", 10, std::bind(&KrRobotROS2StateSubscriber::robot_state_callback, this, _1));
     }
   
 
@@ -172,151 +152,14 @@ private:
         std::cout << std::endl;
     }
 
-    // Move joint service example sending request to move to specified joint configuration
-    void move_joint()
-    {
-        std::shared_ptr<rclcpp::Node> node = rclcpp::Node::make_shared("move_joint_node");
-        rclcpp::Client<kr_msgs::srv::MoveJoint>::SharedPtr client = node->create_client<kr_msgs::srv::MoveJoint>("/kr/motion/move_joint");
-
-        auto request = std::make_shared<kr_msgs::srv::MoveJoint::Request>();
-
-        const std::array<double, 7> config_1 = {0., 35., 9., 116., 0., 0., 0.};
-
-        request->set__jsconf(config_1);
-
-        request->set__ttype(1);
-        request->set__tvalue(5);
-        request->set__bpoint(0);
-        request->set__btype(1);
-        request->set__bvalue(2);
-        request->set__sync(0);
-        request->set__chaining(1);
-
-        while (!client->wait_for_service(1s)) {
-            if (!rclcpp::ok()) {
-                RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Interrupted while waiting for the service. Exiting.");
-                return;
-            }
-            RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "service not available, waiting again...");
-        }
-
-        std ::cout << "SENDING REQUEST FOR JOINT MOVE \n";
-
-        auto result = client->async_send_request(request);
-
-        if (rclcpp::spin_until_future_complete(node, result) == rclcpp::executor::FutureReturnCode::SUCCESS) {
-            if (result.get()->success) {
-                RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "Successfull move joint request.");
-            } else {
-                RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "Move joint failed.");
-            }
-        } else {
-            RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "/kr/motion/move_joint");
-        }
-    }
-
-    // Each time callback is called, one configuration is selected and request to follow this configuration is published
-    // configurations are changing each call.
-    void follow_joint_callback(){
-        auto message = kr_msgs::msg::FollowJoint();
-        const std::array<double, 7> config_1 = {0., 35., 9., 116., 0., 0., 0.};
-        const std::array<double, 7> config_2 = {54., 35., 9., 116., 0., 0., 0.};
-
-        if (temp) { message.set__jsconf(config_1); } else { message.set__jsconf(config_2); }
-
-        message.set__ttype(1);
-        message.set__tvalue(3);
-        message.set__bpoint(0);
-        message.set__btype(1);
-        message.set__bvalue(2);
-
-        std ::cout << "PUBLISHING FOLLOW JOINT \n";
-        follow_joint_publisher_->publish(message);
-        temp = !temp;
-    }
-
-    // Sending message to jog X axis
-    void jog_linear_callback(){
-        std::lock_guard<std::mutex> guard(my_mutex);
-        select_jogging_frame(2);
-        static int i = 0;
-        auto dir = (i / 20) % 6;
-        auto x_vel = dir == 0 ? 100. : (dir == 3 ? -100. : 0.);
-        auto y_vel = dir == 1 ? 100. : (dir == 4 ? -100. : 0.);
-        auto z_vel = dir == 2 ? 100. : (dir == 5 ? -100. : 0.);
-        auto message = kr_msgs::msg::JogLinear();
-        const std::array<double, 3> vel = { x_vel, y_vel, 0. };
-        const std::array<double, 3> rot = { 0., 0., 0. };
-
-        message.set__vel(vel);
-        message.set__rot(rot);
-
-        std ::cout << "PUBLISHING JOG LINEAR \n";
-        jog_linear_publisher_->publish(message);
-        ++i;
-    }
-
-    // Sending message to do self-motion in positive direction with relative speed 0.5
-    void self_motion_callback(){
-        std::lock_guard<std::mutex> guard(my_mutex);
-
-        auto message = kr_msgs::msg::SelfMotion();
-
-        message.set__speed(0.5);
-
-        std ::cout << "PUBLISHING SELF MOTION \n\n";
-        self_motion_publisher_->publish(message);
-    }
-
-    // Sending request to select jogging frame and waiting until result received
-    void select_jogging_frame(int value)
-    {
-        std::shared_ptr<rclcpp::Node> node = rclcpp::Node::make_shared("select_jogging_node");
-        rclcpp::Client<kr_msgs::srv::SelectJoggingFrame>::SharedPtr client = node->create_client<kr_msgs::srv::SelectJoggingFrame>("/kr/motion/select_jogging_frame");
-
-        auto request = std::make_shared<kr_msgs::srv::SelectJoggingFrame::Request>();
-        request->set__ref(value);
-
-        while (!client->wait_for_service(1s)) {
-            if (!rclcpp::ok()) {
-                RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Interrupted while waiting for the service. Exiting.");
-                return;
-            }
-            RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "service not available, waiting again...");
-        }
-
-        std ::cout << "SENDING REQUEST TO SELECT JOGGING FRAME \n";
-        auto result = client->async_send_request(request);
-        if (rclcpp::spin_until_future_complete(node, result) == rclcpp::executor::FutureReturnCode::SUCCESS) {
-            if (result.get()->success) {
-                RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "Successfull selection.");
-            } else {
-                RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "Selection failed.");
-            }
-        } else {
-            RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "/kr/motion/select_jogging_frame");
-        }
-    }
-
-
-
     rclcpp::Subscription<kr_msgs::msg::SystemState>::SharedPtr robot_state_subscription_;
-  
-    rclcpp::Publisher<kr_msgs::msg::FollowJoint>::SharedPtr follow_joint_publisher_;
-    rclcpp::Publisher<kr_msgs::msg::JogLinear>::SharedPtr jog_linear_publisher_;
-    rclcpp::Publisher<kr_msgs::msg::SelfMotion>::SharedPtr self_motion_publisher_;
-    
-    rclcpp::TimerBase::SharedPtr follow_joint_timer_;
-    rclcpp::TimerBase::SharedPtr jog_linear_timer_;
-    rclcpp::TimerBase::SharedPtr self_motion_timer_;
-    
-    bool temp = true;
+
 };
 
 int main(int argc, char * argv[])
 {
   rclcpp::init(argc, argv);
-  rclcpp::spin(std::make_shared<KrRobotROS2Subscriber>());
+  rclcpp::spin(std::make_shared<KrRobotROS2StateSubscriber>());
   rclcpp::shutdown();
   return 0;
 }
