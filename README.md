@@ -45,39 +45,63 @@ value: 1"
 ```
 
 ### kr_example
+kr_example package contains two versions of tests with the same functionality. One for python and one for c++. 
 
 #### state_subscriber
 First of all state_subscriber reads robot state and writes all received values into console. After kr_example compilation as described before, you can run state_subscriber test by:
 
 ```bash
-ros2 run kr_example robot_state
+ros2 run kr_example_cpp robot_state
+```
+
+
+```bash
+ros2 run kr_example_python robot_state
 ```
 
 #### move_joint
-By this test it is possible to let the robot move to the joint configuration which is defined in function move_joint() in file move_joint.cpp. The configuration is [0., 35., 9., 116., 0., 0., 0.].
+By this test it is possible to let the robot move to the joint configuration which is defined in function move_joint() in file move_joint.cpp or move_joint.py. The configuration is [0., 35., 9., 116., 0., 0., 0.].
 
 ```bash
-ros2 run kr_example move_joint
+ros2 run kr_example_cpp move_joint
+```
+
+```bash
+ros2 run kr_example_python move_joint
 ```
 
 #### follow_joint
-By this test it is possible to let the robot follow the joint configuration [0, 0, 0, 0, 0, 0, 0], which is defined in file follow_joint.cpp.
+By this test it is possible to let the robot follow the joint configuration [0, 0, 0, 0, 0, 0, 0], which is defined in file follow_joint.cpp or follow_joint.py.
+
 ```bash
-ros2 run kr_example follow_joint
+ros2 run kr_example_cpp follow_joint
+```
+
+```bash
+ros2 run kr_example_python follow_joint
 ```
 
 ### select_jogging_frame and jog_linear
-To test these two topics, you can run command bellow and your robot wil start jogging with values defined in jog_linear.cpp file in sellected jogging frame.
+To test these two topics, you can run command bellow and your robot wil start jogging with values defined in jog_linear.cpp or jog_linear.py files in sellected jogging frame.
 
 ```bash
-ros2 run kr_example jog_linear
+ros2 run kr_example_cpp jog_linear
+```
+
+```bash
+ros2 run kr_example_python jog_linear
 ```
 
 ### self_motion
 By running the following command, your robot will start executing self-motion. 
 
 ```bash
-ros2 run kr_example self_motion
+ros2 run kr_example_cpp self_motion
+```
+
+
+```bash
+ros2 run kr_example_python self_motion
 ```
 
 For more details see our wiki page with detailed describtion of all available messages and services. 
