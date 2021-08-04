@@ -41,3 +41,10 @@ float32[2]  tio_analog_out    # Tool IO analog outputs
 
 float32[1]  tio_current_in    # Tool IO current inputs
 float32[4]  tio_voltage_in    # Tool IO voltage inputs
+
+# Button flags
+
+bool e_stop 
+bool p_stop
+bool toggle
+bool backdrive 
