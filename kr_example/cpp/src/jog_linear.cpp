@@ -90,7 +90,7 @@ private:
 
         std ::cout << "SENDING REQUEST TO SELECT JOGGING FRAME \n";
         auto result = client->async_send_request(request);
-        if (rclcpp::spin_until_future_complete(node, result) == rclcpp::executor::FutureReturnCode::SUCCESS) {
+        if (rclcpp::spin_until_future_complete(node, result) == rclcpp::FutureReturnCode::SUCCESS) {
             if (result.get()->success) {
                 RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "Successfull selection.");
             } else {

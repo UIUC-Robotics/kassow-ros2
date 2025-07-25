@@ -24,6 +24,7 @@ find_package(rosidl_default_generators REQUIRED)
 find_package(unique_identifier_msgs REQUIRED)
 find_package(rosidl_default_runtime REQUIRED)
 find_package(std_msgs REQUIRED)
+find_package(service_msgs REQUIRED)
 
 
 if(BUILD_TESTING)
@@ -93,7 +94,7 @@ rosidl_generate_interfaces(${PROJECT_NAME}
     "srv/system/UnlockRobot.srv"
     "srv/system/UnsuspendRobot.srv"
     
-    DEPENDENCIES builtin_interfaces rosidl_default_generators rosidl_default_runtime std_msgs unique_identifier_msgs
+    DEPENDENCIES builtin_interfaces rosidl_default_generators rosidl_default_runtime std_msgs unique_identifier_msgs service_msgs
 )
 
 
