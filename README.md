@@ -6,7 +6,7 @@ ROS2 for Kassow Robots allows you to monitor and control all KR models via the R
 
 ## Installation
 
-ROS2 for Kassow Robots requires Linux setup with ROS2.  We recommend ROS2 Dashing with Ubuntu 18.04 and ROS2 Foxy with Ubuntu 20.04. Newer versions of ROS2 (Galactic) are unfortunately not supported. It is not oficially supported with any other ROS2 version or operating system as it was not tested in any other setup.  
+ROS2 for Kassow Robots requires Linux setup with ROS2.  We recommend ROS2 Dashing with Ubuntu 18.04 and ROS2 Foxy with Ubuntu 20.04. This repository also supports Humble(Ubuntu 22.04) and Jazzy (Ubuntu 24.04).Refer to the [ROS2 setup guide](https://community.boschrexroth.com/ctrlx-automation-how-tos-qmglrz33/post/kassow-robots---command-from-ros2-urSGIhvvYqZxZAN)
 
 ```bash
 cd ~/dew_ws
@@ -35,6 +35,9 @@ ros2 topic echo /kr/system/state
 #### Jogging
 
 ```bash
+ros2 topic pub -r 20 /kr/motion/jog_joint kr_msgs/msg/JogJoint "{jsvel: [30.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]}"
+
+# for foxy or older distros
 ros2 topic pub -r 20 /kr/motion/jog_joint kr_msgs/msg/JogJoint "jsvel: [30.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]"
 ```
 #### Services

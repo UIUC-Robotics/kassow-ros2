@@ -90,6 +90,17 @@ private:
 
         std ::cout << "SENDING REQUEST TO SELECT JOGGING FRAME \n";
         auto result = client->async_send_request(request);
+        #if defined(FOXY) || defined(DASHING)
+        if (rclcpp::spin_until_future_complete(node, result) == rclcpp::executor::FutureReturnCode::SUCCESS) {
+            if (result.get()->success) {
+                RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "Successfull selection.");
+            } else {
+                RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "Selection failed.");
+            }
+        } else {
+            RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "/kr/motion/select_jogging_frame");
+        }
+        # else
         if (rclcpp::spin_until_future_complete(node, result) == rclcpp::FutureReturnCode::SUCCESS) {
             if (result.get()->success) {
                 RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "Successfull selection.");
@@ -99,6 +110,7 @@ private:
         } else {
             RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "/kr/motion/select_jogging_frame");
         }
+        #endif
     }
 
 

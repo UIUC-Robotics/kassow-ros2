@@ -83,6 +83,18 @@ private:
         std ::cout << "SENDING REQUEST FOR JOINT MOVE \n";
 
         auto result = client->async_send_request(request);
+        #if defined(FOXY) || defined(DASHING)
+        if (rclcpp::spin_until_future_complete(node, result) == rclcpp::executor::FutureReturnCode::SUCCESS) {
+            if (result.get()->success) {
+                RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "Successfull move joint request.");
+            } else {
+                RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "Move joint failed.");
+            }
+        } else {
+            RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "/kr/motion/move_joint");
+        }
+
+        #else
 
         if (rclcpp::spin_until_future_complete(node, result) == rclcpp::FutureReturnCode::SUCCESS) {
             if (result.get()->success) {
@@ -93,6 +105,7 @@ private:
         } else {
             RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "/kr/motion/move_joint");
         }
+        #endif
     }
 };
 
